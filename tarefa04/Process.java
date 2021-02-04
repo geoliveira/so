@@ -1,74 +1,103 @@
-/*
-    a. Cabeçalho	contendo	o	nome	do	algoritmo	e	a	lista	dos	parâmetros;
-    b. Tempo	total de	processamento	(somando	todos	os	processos);
-    c. Percentual	de	utilização da CPU (tempo	total-tempo	troca	contexto)/tempo	total);
-    d. Media	Throughput dos	processos;
-    e. Media	Turnaround dos	processos
-    f. Media	Tempo	de	Espera dos	processos
-    g. Media	de	Tempo	de	Resposta dos	processos
-    h. Média	de	troca	de	contextos;
-    i. Numero	de	Processos executados
-    
-    a. Id	do	processo	escalonado;
-    b. Tempo	de	processamento;
- */
-
 public class Process {
-    private const int id, priority, arriveTime;
-    private int burstTime, throughput, turnaround,
-                timeWait, timeResponse, switchContext;
+    private Integer id, priority, arriveTime,
+                    burstTime, throughput, turnaround,
+                    timeWait, timeResponse, switchContext;
+    private Boolean state;
     
-    public Process(int at, int bt, int id, int pr) {
+    public Process(Integer id, Integer pr, Integer at, Integer bt, Boolean s) {
         this.id             = id;
         this.priority       = pr;
         this.arriveTime     = at;
         this.burstTime      = bt;
         this.throughput     = 0; // qtd de proc concluídos por unidade de tempo
         this.turnaround     = 0; // intervalo de tempo [arriveTime, conclusao]
+        this.timeWait       = 0; // tempo na fila de wait
         this.timeResponse   = 0; // intervalo de tempo [arriveTime, 1a resposta]
         this.switchContext  = 0; // qtd de troca de contexto
+        this.state          = s;
     }
     
     /* SET FUNCTIONS */
-    public void setBurstTime(int bt) {
-        this.burstTime = bt;
+    public void setBurstTime(Integer bt) {
+        this.burstTime = this.burstTime-bt;
     }
     
-    public void setThroughput(int tp) {
+    public void setThroughput(Integer tp) {
         this.throughput = tp;
     }
     
-    public void setTurnaround(int ta) {
+    public void setTurnaround(Integer ta) {
         this.turnaround = ta;
     }
     
-    public void setTimeResponse(int tr) {
+    public void setTimeWait(Integer tw) {
+        this.timeWait = tw;
+    }
+
+    public void setTimeResponse(Integer tr) {
         this.timeResponse = tr;
     }
     
-    public void setSwitchContext(int sc) {
+    public void setSwitchContext(Integer sc) {
         this.switchContext = sc;
+    }
+    
+    public void changeState() {
+        (this.state) = (this.state) ? false : true;
     }
 
     /* GET FUNCTIONS */
-
-    public int setBurstTime(void) {
-        return this.burstTime
+    public Integer getId() {
+        return this.id;
     }
 
-    public int getThroughput(void) {
+    public Integer getPriority() {
+        return this.priority;
+    }
+
+    public Integer getArriveTime() {
+        return this.arriveTime;
+    }
+
+    public Integer getBurstTime() {
+        return this.burstTime;
+    }
+
+    public Integer getThroughput() {
         return this.throughput;
     }
     
-    public int getTurnaround(void) {
+    public Integer getTurnaround() {
         return this.turnaround;
     }
     
-    public int getTimeResponse(void) {
+    public Integer getTimeWait() {
+        return this.timeWait;
+    }
+
+    public Integer getTimeResponse() {
         return this.timeResponse;
     }
     
-    public int getSwitchContext(void) {
+    public Integer getSwitchContext() {
         return this.switchContext;
+    }
+        
+    public Boolean getState() {
+        return (this.state);
+    }
+
+    @Override
+    public String toString() {
+        return ("Id="+getId()+
+               ", Priority="+getPriority()+
+               ", ArriveTime="+getArriveTime()+
+               ", BurstTime="+getBurstTime()+
+               ", Throughput="+getThroughput()+
+               ", Turnaround="+getTurnaround()+
+               ", TimeWait="+getTimeWait()+
+               ", TimeResponse="+getTimeResponse()+
+               ", SwitchContext="+getSwitchContext()+
+               ", State="+getState());
     }
 }

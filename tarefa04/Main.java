@@ -1,11 +1,12 @@
+import java.io.*;
+
+// import java.io.IOException;
+// import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.LinkedList;
+
 public class Main {
-    import com.opencsv.bean.CsvToBean;
-    import com.opencsv.bean.CsvToBeanBuilder;
-    import java.io.IOException;
-    import java.io.Reader;
-    import java.nio.file.Files;
-    import java.nio.file.Paths;
-    import java.util.List;
     /*
      * algoritmos de escalonamento de processos: 
      *      FCFS; 
@@ -27,13 +28,46 @@ public class Main {
      *  Exemplo da chamada do programa: $ java escalonador processos.csv RR quantum=10
      */
     public static void main(String[] args) throws IOException
-    {
-        Reader reader = Files.newBufferedReader(Paths.get(args[0]+".csv")); 
+    {   
+        LinkedList<Process> processes = new LinkedList<Process>();
+        BufferedReader reader = Files.newBufferedReader(Paths.get(args[0])); 
+        String[] attributes;
+        
+        try {
+            String line;
+    
+            while ((line = reader.readLine()) != null) {
+                attributes = line.split(",");
+                Process process = 
+                        new Process(
+                        Integer.parseInt(attributes[0]), 
+                        Integer.parseInt(attributes[1]), 
+                        Integer.parseInt(attributes[2]), 
+                        Integer.parseInt(attributes[3]), 
+                        true);
+                
+                processes.add(process);
+            }  
 
-        CsvToBean<Process> csvToBean = new CsvToBeanBuilder(reader).withType(Process.class).build();
+            attributes = args[2].split("="); // quantum=10
 
-        List<Process> processes = csvToBean.parse();
+            Scheduler sched = 
+                        new Scheduler(
+                        processes,
+                        Integer.parseInt(attributes[1]));
 
-        for (Process proc : processes) System.out.println(proc);
+            sched.execScheduler(args[1]);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+        }
     }
 }
