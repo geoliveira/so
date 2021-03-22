@@ -14,7 +14,7 @@ int main(int argc, char const *argv[])
     if (argc == 2)
     {
         printf("Item a)\nA posicao %d da sequencia sera mostrada!\nProcesso principal: %d\n", atoi(argv[1]), getpid());
-        printf("fib(%d)=%llu\n", atoi(argv[1]), fib(atoi(argv[1])-1));
+        printf("fib(%d)=%llu\n", atoi(argv[1])-1, fib(atoi(argv[1])-1));
         return 1;
     } if (argc == 3) {
         int pid_a, pid_b, tam_interv, inicio = atoi(argv[1])-1, final = atoi(argv[2])-1;
@@ -38,7 +38,7 @@ int main(int argc, char const *argv[])
                     }
                     printf("Eu sou filho %d do meu pai %d.\n",getpid(),getppid()) ;
                 }
-                printf(" pid=%d. fib(%d)=%llu\n", getpid(), i+1, fib(i));
+                printf(" pid=%d. fib(%d)=%llu\n", getpid(), i, fib(i));
                 sleep(2);
             }
         } else {
