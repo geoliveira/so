@@ -6,4 +6,4 @@ clear:
 	rm *.class
 
 start:
-	java DeadlockAlgorithm data.csv 5 3 "3 3 2"
+	java DeadlockAlgorithm data.csv 5 3 "0 0 0"

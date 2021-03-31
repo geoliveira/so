@@ -1,16 +1,33 @@
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 
-/* 
- * -             allocAtMom   maxRecNeed
- * Recourse      A B C        A B C
- * Proc0         3 1 0        7 5 7
- * Proc1         7 0 1        7 1 1
- * Proc2         0 2 2        10 4 3
-**/
 public class DeadlockAlgorithm
 {
+    static Boolean[] copyb(Boolean[] a) {
+        Boolean[] b = new Boolean[a.length];
+        for(int c=0; c < a.length; c++)
+            b[c] = a[c];
+        return b;
+    }
+
+    static Integer[] copyv(Integer[] a) {
+        Integer[] b = new Integer[a.length];
+        for(int c=0; c < a.length; c++)
+            b[c] = a[c];
+        return b;
+    }
+
+    static Integer[][] copym(Integer[][] a) {
+        Integer[][] b = new Integer[a.length][a[0].length];
+        for(int l=0; l < a.length; l++)
+            for(int c=0; c < a[0].length; c++)
+                b[l][c] = a[l][c];
+        return b;
+    }
+
     static void showMatrix(Integer mOne[][], Integer mTwo[][], Integer mThree[][])
     {
         System.out.printf("A - Resources allocated\nM - Amount maximum resource requested\nD - Deallocated resource\nN - Need to resourse\n\n");
@@ -32,52 +49,51 @@ public class DeadlockAlgorithm
             for (int c = 0; c < mThree[0].length; c++) System.out.print(mThree[l][c] + " ");
         }
 
-        System.out.println("\n");
+        System.out.println();
     }
 
-    static Boolean safety(Integer[][] allocAtMom, Integer[][] maxRecNeed, Integer[] available, Boolean[] finish)
+    static Boolean safety(Integer[][] allocAtMom, Integer[][] maxRecNeed, Integer[] available, ArrayList<Integer> sequence, Boolean[] finish, Integer[][] necessity)
     {
-        Boolean desalloc = true, safe = true;
+        Boolean desalloc = true;
+        Integer cont = 0;
 
-        for (int p = 0; p < allocAtMom.length; p++)
+        while (cont < allocAtMom.length)
         {
-            if (finish[p] == false)
+            for (int p = 0; p < allocAtMom.length; p++)
             {
-                for (int r = 0; r < maxRecNeed[0].length; r++)
+                if (finish[p] == false)
                 {
-                    if(maxRecNeed[p][r] > available[r])
-                    {
-                        desalloc = false;
-                        break;
-                    }
-                    desalloc = true;
-                }
-                
-                if (desalloc)
-                {
-                    // System.out.printf("- dealloc: P%d ", p);
                     for (int r = 0; r < maxRecNeed[0].length; r++)
                     {
-                        available[r] += allocAtMom[p][r];
-                        allocAtMom[p][r] = 0;
-                        // System.out.printf("%d ", available[r]);
+                        if(necessity[p][r] > available[r])
+                        {
+                            desalloc = false;
+                            break;
+                        }
+                        desalloc = true;
                     }
-                    // System.out.println();
-                    finish[p] = true;
-                } 
-                else {
-                    System.out.printf("- unsafe: P%d ", p);
-                    for (int r = 0; r < available.length; r++)
+                    
+                    if (desalloc)
                     {
-                        System.out.printf("%d ", available[r]);
+                        for (int r = 0; r < maxRecNeed[0].length; r++) {
+                            available[r] += allocAtMom[p][r];
+                        }
+                        finish[p] = true;
+                        sequence.add(p);
                     }
-                    System.out.println();
-                    safe = false;
                 }
             }
+            cont++;
         }
 
-        return safe;
+        if (sequence.size() == allocAtMom.length) {
+            System.out.printf("\n- safe sequence: ");
+            for (cont=0; cont < allocAtMom.length; cont++) 
+                System.out.printf("P%d ", sequence.get(cont));
+            System.out.println();
+            return true;
+        }
+        return false;
     }
     
     static Boolean avoid(Integer[] allocAtMom, Integer[] maxRecNeed, Integer[] available, Integer[] necessity, Integer p)
@@ -112,8 +128,54 @@ public class DeadlockAlgorithm
         return true;
     }
 
-    static Boolean detection(Integer[][] allocAtMom, Integer[][] maxRecNeed, Integer[] available, Boolean[] finish, Integer[][] necessity)
+    static Boolean detection(Integer[][] allocAtMom, Integer[][] maxRecNeed, Integer[] available, ArrayList<Integer> sequence, Boolean[] finish, Integer[][] necessity)
     {
+        Boolean desalloc = true;
+        Integer cont = 0;
+
+        while (cont < allocAtMom.length)
+        {
+            for (int p = 0; p < allocAtMom.length; p++)
+            {
+                if (finish[p] == false)
+                {
+                    for (int r = 0; r < maxRecNeed[0].length; r++)
+                    {
+                        if(maxRecNeed[p][r] > available[r])
+                        {
+                            desalloc = false;
+                            break;
+                        }
+                        desalloc = true;
+                    }
+                    
+                    if (desalloc)
+                    {
+                        // System.out.printf("- dealloc: P%d ", p);
+                        for (int r = 0; r < maxRecNeed[0].length; r++)
+                        {
+                            available[r] += allocAtMom[p][r];
+                            allocAtMom[p][r] = 0;
+                            // System.out.printf("%d ", available[r]);
+                        }
+                        // System.out.println();
+                        finish[p] = true;
+                        sequence.add(p);
+                    }
+                }
+            }
+            cont++;
+        }
+
+        if (sequence.size() != allocAtMom.length) {
+            System.out.printf("- deadlocked: ");
+            for (cont=0; cont < allocAtMom.length; cont++) 
+                if(!sequence.contains(cont))
+                    System.out.printf("P%d ", cont);
+            System.out.println();
+            return true;
+        }
+
         return false;
     }
 
@@ -130,6 +192,7 @@ public class DeadlockAlgorithm
         Integer maxRecNeed[][] = new Integer[amProc][amRec];
         Integer necessity[][] = new Integer[amProc][amRec];
         Boolean finishedProc[] = new Boolean[amProc];
+        ArrayList<Integer> sequence = new ArrayList<Integer>(amProc);
 
         try {
             String data[], line;
@@ -153,10 +216,26 @@ public class DeadlockAlgorithm
             file.close();
         }
 
-        if (safety(allocAtMom, maxRecNeed, available, finishedProc)) {
-            System.out.println("\nStatus: SAFE");
+        System.out.println("\n=> Safety Algorithm:");
+
+        if (safety(copym(allocAtMom), copym(maxRecNeed), copyv(available), sequence, copyb(finishedProc), copym(necessity))) {
+            System.out.println("Status: SAFE");
         } else {
-            System.out.println("\nStatus: UNSAFE");
+            System.out.println("Status: UNSAFE");
         }
+        System.out.println("\n=> Avoid Algorithm: P2 request ");
+        avoid(copyv(allocAtMom[2]), copyv(maxRecNeed[2]), copyv(available), copyv(necessity[2]), 2);
+        
+        System.out.println("\n=> Detection Algorithm: without Avoid P2 requestion");
+        sequence.clear();
+        System.out.println("P2 request 1 resource C\n");
+        maxRecNeed[2][2] = 1;
+
+        if (detection(copym(allocAtMom), copym(maxRecNeed), copyv(available), sequence, copyb(finishedProc), copym(necessity))) {
+            System.out.println("Status: DEADLOCK");
+        }
+        
+        // avoid(Integer[] allocAtMom, Integer[] maxRecNeed, Integer[] available, Integer[] necessity, Integer p)
+        
     }
 }
